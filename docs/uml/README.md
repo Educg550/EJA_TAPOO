@@ -15,4 +15,4 @@ Para gerar os SVGs com PlantUML instalado:
 plantuml -charset UTF-8 -tsvg docs/uml/classes.puml docs/uml/casos-de-uso.puml
 ```
 
-Os dois diagramas usam o motor ELK para linhas ortogonais e dispensam Graphviz; use PlantUML 1.2024.6 ou mais recente. Nos casos de uso, as ligações ocultas apenas organizam os elementos verticalmente. O título identifica o sistema delimitado pelo retângulo.
+As classes usam o motor ELK para linhas ortogonais. Os casos de uso usam Smetana, com atores à esquerda e casos de uso à direita. Ambos dispensam Graphviz; use PlantUML 1.2024.6 ou mais recente.
