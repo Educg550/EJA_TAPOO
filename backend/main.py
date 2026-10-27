@@ -28,6 +28,7 @@ from backend.schemas import (
     LicenciandoSaida,
     LocalidadeSaida,
     Login,
+    MeuPerfilSaida,
     PedidoApoio,
     PerfilLicenciando,
     SolicitacaoSaida,
@@ -138,7 +139,7 @@ def sair(db: DB, usuario: Atual, credenciais: Credenciais):
     db.commit()
 
 
-@app.get("/usuarios/me", response_model=UsuarioSaida)
+@app.get("/usuarios/me", response_model=MeuPerfilSaida, response_model_exclude_none=True)
 def meu_usuario(usuario: Atual):
     return usuario
 

@@ -123,7 +123,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UsuarioSaida"
+                  "$ref": "#/components/schemas/MeuPerfilSaida"
                 }
               }
             }
@@ -1155,6 +1155,59 @@
         ],
         "title": "Login"
       },
+      "MeuPerfilSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nome_exibicao": {
+            "type": "string",
+            "title": "Nome Exibicao"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          },
+          "disciplinas": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disciplinas"
+          },
+          "disponibilidade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disponibilidade"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome_exibicao",
+          "email",
+          "tipo"
+        ],
+        "title": "MeuPerfilSaida"
+      },
       "PedidoApoio": {
         "properties": {
           "licenciando_id": {
@@ -1212,6 +1265,14 @@
             "type": "integer",
             "title": "Licenciando Id"
           },
+          "estudante_nome": {
+            "type": "string",
+            "title": "Estudante Nome"
+          },
+          "licenciando_nome": {
+            "type": "string",
+            "title": "Licenciando Nome"
+          },
           "estado": {
             "$ref": "#/components/schemas/EstadoSolicitacao"
           },
@@ -1226,6 +1287,8 @@
           "id",
           "estudante_id",
           "licenciando_id",
+          "estudante_nome",
+          "licenciando_nome",
           "estado",
           "criada_em"
         ],

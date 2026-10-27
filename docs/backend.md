@@ -47,11 +47,11 @@ uv run --project backend uvicorn backend.main:app --reload
 | `POST /auth/cadastro` | Cadastro de estudante ou licenciando |
 | `POST /auth/login` | E-mail e senha; retorna token Bearer com validade de 24 horas |
 | `DELETE /auth/sessao` | Invalida o token atual |
-| `GET /usuarios/me` | Dados da própria conta |
+| `GET /usuarios/me` | Dados da própria conta; para licenciandos, também disciplinas e disponibilidade |
 | `GET /licenciandos` | Estudante autenticado; nome, disciplinas e disponibilidade, sem e-mail |
 | `PUT /licenciandos/me` | Licenciando altera suas disciplinas e disponibilidade |
 | `POST /solicitacoes` | Estudante envia `licenciando_id` |
-| `GET /solicitacoes` | Apenas solicitações do participante autenticado |
+| `GET /solicitacoes` | Apenas solicitações do participante autenticado, com nomes dos dois participantes |
 | `POST /solicitacoes/{id}/aceitar` | Licenciando destinatário aceita um pedido pendente |
 | `POST /solicitacoes/{id}/recusar` | Licenciando destinatário recusa um pedido pendente |
 | `POST /solicitacoes/{id}/cancelar` | Estudante solicitante cancela um pedido pendente |
@@ -81,6 +81,8 @@ Exemplo de cadastro de licenciando:
 ```
 
 No login, envie `email` e `senha` em JSON. Nas chamadas autenticadas, use `Authorization: Bearer <access_token>`. Tokens são aleatórios e armazenados somente como SHA-256; senhas usam Argon2. Os erros de validação não repetem os valores enviados. E-mails são normalizados para minúsculas. Não há foto, aprovação de licenciando, matrícula, candidatura interna, recuperação de senha ou envio automático de e-mails.
+
+`GET /usuarios/me` inclui `disciplinas` e `disponibilidade` somente para o próprio licenciando. As respostas de criação, consulta e transição de solicitações incluem `estudante_nome` e `licenciando_nome`. Esses nomes permitem identificar os participantes antes do aceite; e-mails continuam restritos ao endpoint de contatos após o aceite. As relações são carregadas em lote pelo ORM, sem uma consulta adicional por solicitação e sem mudança no esquema do banco.
 
 Erros: 401 para autenticação ausente ou inválida; 403 para acesso indevido; 404 para registro ausente; 409 para duplicidade ou transição inválida; 422 para entrada inválida; 502 para falha ou resposta inválida do IBGE.
 
@@ -120,15 +122,25 @@ O padrão usa SQLite em memória para verificações rápidas. Para integração
 
 ```sh
 export TEST_DATABASE_URL='postgresql+psycopg://usuario:senha@localhost/eja_test'
-uv run --project backend pytest backend/tests -q --cov=backend --cov-config=backend/pyproject.toml --cov-report=term-missing
+uv run --project backend pytest backend/tests -q --cov=backend --cov-branch --cov-config=backend/pyproject.toml --cov-report=term-missing
 ```
 
 Os testes apagam e recriam as tabelas desse banco isolado a cada caso. Nunca use um banco com dados úteis. Cobrem a abstração e o polimorfismo dos usuários, autenticação, expiração e revogação de sessão, autorização entre participantes, sigilo dos e-mails, estados finais, pedidos repetidos, manutenção e filtros de vagas, importação idempotente, validação das entradas e falhas do IBGE. A integração do frontend React não é coberta: ele ainda chama a antiga demonstração `/items/`, removida do backend.
 
-Validação em 27/10/2026, com Python 3.15.2 e PostgreSQL 17: 25 testes passaram, incluindo disputas simultâneas de transição e criação de pedidos. A cobertura do backend, excluídos os próprios testes, foi de 94%; API, schemas e segurança tiveram 100%. O teste específico da CLI confirmou os imports adiados. A suíte em SQLite passou antes desse último teste, com 22 testes aprovados e dois testes de concorrência ignorados por dependerem de PostgreSQL.
+Validação em 27/10/2026, com Python 3.15.2: 66 testes passaram no PostgreSQL 17; no SQLite, 64 passaram e os dois testes de concorrência foram ignorados por dependerem de PostgreSQL. A cobertura do backend, excluídos os próprios testes, chegou a 99%, agora incluindo decisões além das linhas. API, schemas, segurança e persistência tiveram 100%. Permanecem sem execução o corpo do método abstrato `Usuario.permissoes()` e a chamada do módulo CLI pelo bloco `__main__`.
+
+Os testes adicionais verificam o perfil completo do licenciando, os nomes dos participantes sem vazamento de e-mails, exigência de autenticação em todas as operações privadas, bloqueio de atualização e encerramento de vagas sem permissão, registros inexistentes, paginação nas cinco listagens persistidas, filtros individuais e combinados, prazo de inscrição igual a hoje, busca com caracteres literais e conteúdo dos municípios. Também cobrem erros HTTP e respostas inválidas do IBGE, comandos da CLI com entrada de senha simulada, rollback de importação inválida e sessões reais por requisição, incluindo sucesso após uma falha de unicidade.
 
 A imagem Docker foi construída e o Compose iniciou banco e API. A importação pela CLI retornou `{"cursos": 1029, "vagas": 138}`; a segunda execução retornou `{"cursos": 0, "vagas": 0}`. Chamadas HTTP reais verificaram cadastro, login, apoio, liberação de contatos, catálogo e os endpoints de UF e municípios do IBGE. Os hashes dos arquivos de dados originais permaneceram iguais. Ruff e a verificação de formatação passaram.
 
-O Starlette instalado emite um aviso de depreciação do uso de HTTPX pelo cliente de testes. A suíte passa; a migração desse cliente fica para uma atualização das ferramentas de teste. Os comandos interativos da CLI não integram a cobertura automatizada, embora inicialização e importação tenham sido verificadas no Compose.
+O Starlette instalado emite um aviso de depreciação do uso de HTTPX pelo cliente de testes. A suíte passa; a migração desse cliente fica para uma atualização das ferramentas de teste. A entrada de senha da CLI é simulada nos testes; o terminal interativo não é automatizado. Fluxos pelo navegador continuam fora desta suíte, pois o frontend ainda precisa ser implementado e integrado.
+
+## Revisão final do backend e UML
+
+Revisão repetida em 27/10/2026: os 66 testes passaram novamente no PostgreSQL 17, com 99% de cobertura incluindo decisões. Ruff, formatação, configuração Compose e correspondência do OpenAPI com a aplicação foram conferidos. Os fontes PlantUML foram comparados às classes e aos casos de uso implementados; os dois SVGs foram regenerados e inspecionados visualmente.
+
+A imagem final foi construída e iniciada com Compose em ambiente descartável. Foram verificados por HTTP real cadastro, login dos três papéis, consulta e edição do perfil, nomes nas solicitações, aceite, restrição dos contatos, rejeição de transições finais, gestão de vagas e logout. A criação de administrador também foi testada manualmente no terminal. A importação inicial retornou 1.029 cursos e 138 vagas; a repetição não acrescentou registros. As chamadas reais do IBGE retornaram 27 UFs e os municípios de São Paulo com o formato esperado.
+
+Não foram encontrados bloqueios funcionais no escopo de backend definido. Isso não equivale à conclusão da entrega: integração do frontend e validação pelo navegador, publicação em servidor, curadoria pedagógica dos cursos e os quatro relatórios analíticos continuam pendentes. A configuração de HTTPS e limitação de autenticação no proxy deve acompanhar a publicação; a versão local usa loopback. O inicializador cria tabelas, mas não migra esquemas existentes.
 
 Documentação técnica consultada: [mapeamento de dataclasses no SQLAlchemy](https://docs.sqlalchemy.org/en/20/orm/dataclasses.html), [segurança HTTPBearer no FastAPI](https://fastapi.tiangolo.com/reference/security/) e [uv no Docker](https://docs.astral.sh/uv/guides/integration/docker/).

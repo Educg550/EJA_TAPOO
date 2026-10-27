@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import Annotated, Literal
 
 from pydantic import (
+    AliasPath,
     BaseModel,
     ConfigDict,
     EmailStr,
@@ -73,6 +74,11 @@ class UsuarioSaida(Saida):
     tipo: str
 
 
+class MeuPerfilSaida(UsuarioSaida):
+    disciplinas: list[str] | None = None
+    disponibilidade: str | None = None
+
+
 class LicenciandoSaida(Saida):
     id: int
     nome_exibicao: str
@@ -94,6 +100,8 @@ class SolicitacaoSaida(Saida):
     id: int
     estudante_id: int
     licenciando_id: int
+    estudante_nome: str = Field(validation_alias=AliasPath("estudante", "nome_exibicao"))
+    licenciando_nome: str = Field(validation_alias=AliasPath("licenciando", "nome_exibicao"))
     estado: EstadoSolicitacao
     criada_em: datetime
 

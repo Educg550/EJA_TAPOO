@@ -16,7 +16,7 @@ from sqlalchemy import (
     Text,
     create_engine,
 )
-from sqlalchemy.orm import Session, registry
+from sqlalchemy.orm import Session, registry, relationship
 
 from backend.domain import (
     Administrador,
@@ -78,7 +78,19 @@ Index(
 mapper.map_imperatively(
     SolicitacaoApoio,
     solicitacoes,
-    properties={"_estado": solicitacoes.c.estado},
+    properties={
+        "_estado": solicitacoes.c.estado,
+        "estudante": relationship(
+            EstudanteEJA,
+            foreign_keys=[solicitacoes.c.estudante_id],
+            lazy="selectin",
+        ),
+        "licenciando": relationship(
+            Licenciando,
+            foreign_keys=[solicitacoes.c.licenciando_id],
+            lazy="selectin",
+        ),
+    },
 )
 
 cursos = Table(

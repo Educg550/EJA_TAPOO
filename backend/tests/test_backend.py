@@ -8,6 +8,7 @@ from threading import Barrier
 
 import httpx
 import pytest
+from backend import cli, database
 from backend.cli import criar_admin, importar
 from backend.database import sessoes
 from backend.domain import (
@@ -21,6 +22,7 @@ from backend.domain import (
 )
 from backend.main import app
 from backend.security import emitir_token, token_hash
+from fastapi.testclient import TestClient
 from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -209,15 +211,28 @@ def test_fluxo_apoio_privacidade_e_permissoes(client, db):
     assert resposta.status_code == 201, resposta.text
     pedido = resposta.json()
     assert pedido["estado"] == "pendente"
+    assert pedido["estudante_nome"] == estudante["nome_exibicao"]
+    assert pedido["licenciando_nome"] == licenciando["nome_exibicao"]
+    assert set(pedido) == {
+        "id",
+        "estudante_id",
+        "licenciando_id",
+        "estudante_nome",
+        "licenciando_nome",
+        "estado",
+        "criada_em",
+    }
     id = pedido["id"]
     assert client.get(f"/solicitacoes/{id}/contatos", headers=aluno).status_code == 409
     assert client.get(f"/solicitacoes/{id}/contatos", headers=terceiro).status_code == 403
     assert client.get("/solicitacoes", headers=terceiro).json() == []
     assert client.get("/solicitacoes", headers=tutor).json() == [pedido]
+    assert client.get("/solicitacoes", headers=aluno).json() == [pedido]
     assert client.post(f"/solicitacoes/{id}/aceitar", headers=aluno).status_code == 403
     assert client.post(f"/solicitacoes/{id}/aceitar", headers=outro_tutor).status_code == 403
     assert client.post(f"/solicitacoes/{id}/cancelar", headers=terceiro).status_code == 403
     assert client.post(f"/solicitacoes/{id}/aceitar", headers=tutor).json()["estado"] == "aceita"
+    assert client.get("/solicitacoes", headers=tutor).json()[0]["estudante_nome"] == "ana"
     for participante in (aluno, tutor):
         assert client.get(f"/solicitacoes/{id}/contatos", headers=participante).json() == {
             "estudante_email": estudante["email"],
@@ -444,3 +459,315 @@ def test_concorrencia_de_pedidos_duplicados(client, db):
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         assert sorted(executor.map(solicitar, range(2))) == ["criada", "duplicada"]
+
+
+def test_perfil_completo_do_licenciando(client, db):
+    usuario, headers = conta(client, "bia", "licenciando")
+    perfil = client.get("/usuarios/me", headers=headers).json()
+    assert perfil == {**usuario, "disciplinas": ["Matemática"], "disponibilidade": "Sábados"}
+    novos_dados = {"disciplinas": ["Português", "História"], "disponibilidade": "Noite"}
+    resposta = client.put("/licenciandos/me", headers=headers, json=novos_dados)
+    assert resposta.json() == {"id": usuario["id"], "nome_exibicao": "bia", **novos_dados}
+    db.expire_all()
+    assert client.get("/usuarios/me", headers=headers).json() == {**usuario, **novos_dados}
+    assert set(client.get("/usuarios/me", headers=admin(db)).json()) == {
+        "id",
+        "nome_exibicao",
+        "email",
+        "tipo",
+    }
+    for disciplinas, disponibilidade in (([], "Noite"), ([" "], "Noite"), (["Português"], " ")):
+        assert (
+            client.put(
+                "/licenciandos/me",
+                headers=headers,
+                json={
+                    "disciplinas": disciplinas,
+                    "disponibilidade": disponibilidade,
+                },
+            ).status_code
+            == 422
+        )
+    assert client.get("/usuarios/me", headers=headers).json() == {**usuario, **novos_dados}
+
+
+@pytest.mark.parametrize("metodo", ["PUT", "DELETE"])
+@pytest.mark.parametrize("papel", [None, "estudante", "licenciando"])
+def test_gestao_de_vagas_sem_permissao_nao_altera_dados(client, db, metodo, papel):
+    gestor = admin(db)
+    original = client.post("/vagas", headers=gestor, json=vaga()).json()
+    headers = conta(client, "intruso", papel)[1] if papel else {}
+    argumentos = {"json": vaga(titulo="Alteração indevida")} if metodo == "PUT" else {}
+    resposta = client.request(metodo, f"/vagas/{original['id']}", headers=headers, **argumentos)
+    assert resposta.status_code == (403 if papel else 401)
+    assert client.get("/admin/vagas", headers=gestor).json() == [original]
+
+
+@pytest.mark.parametrize("metodo", ["PUT", "DELETE"])
+def test_gestao_de_vaga_inexistente(client, db, metodo):
+    argumentos = {"json": vaga()} if metodo == "PUT" else {}
+    assert client.request(metodo, "/vagas/9999", headers=admin(db), **argumentos).status_code == 404
+
+
+@pytest.mark.parametrize(
+    "metodo,caminho,corpo",
+    [
+        ("GET", "/usuarios/me", None),
+        ("GET", "/licenciandos", None),
+        ("PUT", "/licenciandos/me", {"disciplinas": ["Português"], "disponibilidade": "Noite"}),
+        ("POST", "/solicitacoes", {"licenciando_id": 1}),
+        ("GET", "/solicitacoes", None),
+        ("POST", "/solicitacoes/1/aceitar", None),
+        ("POST", "/solicitacoes/1/recusar", None),
+        ("POST", "/solicitacoes/1/cancelar", None),
+        ("GET", "/solicitacoes/1/contatos", None),
+        ("POST", "/vagas", vaga()),
+        ("PUT", "/vagas/1", vaga()),
+        ("DELETE", "/vagas/1", None),
+        ("GET", "/admin/vagas", None),
+        ("DELETE", "/auth/sessao", None),
+    ],
+)
+def test_todas_as_operacoes_privadas_exigem_autenticacao(client, metodo, caminho, corpo):
+    resposta = client.request(metodo, caminho, **({"json": corpo} if corpo else {}))
+    assert resposta.status_code == 401
+    assert resposta.headers["www-authenticate"] == "Bearer"
+
+
+def test_paginacao_das_listagens(client, db):
+    _, aluno = conta(client, "ana")
+    gestor = admin(db)
+    for indice in range(3):
+        licenciando, _ = conta(client, f"tutor{indice}", "licenciando")
+        assert (
+            client.post(
+                "/solicitacoes",
+                headers=aluno,
+                json={
+                    "licenciando_id": licenciando["id"],
+                },
+            ).status_code
+            == 201
+        )
+        db.add(
+            CursoExterno(
+                id=indice + 1,
+                titulo=f"Curso {indice}",
+                carga_horaria_horas=20,
+                prazo_realizacao_dias=30,
+                url_oficial=f"https://example.com/curso/{indice}",
+                tipo_oferta="Curso Aberto",
+            )
+        )
+        db.add(OportunidadeTrabalho(**vaga(titulo=f"Vaga {indice}")))
+        db.commit()
+    for caminho, headers in (
+        ("/cursos", {}),
+        ("/vagas", {}),
+        ("/licenciandos", aluno),
+        ("/solicitacoes", aluno),
+        ("/admin/vagas", gestor),
+    ):
+        todos = client.get(caminho, headers=headers).json()
+        assert len(todos) == 3
+        primeira = client.get(caminho, headers=headers, params={"limite": 2}).json()
+        segunda = client.get(caminho, headers=headers, params={"limite": 2, "inicio": 2}).json()
+        assert len(primeira) == 2
+        assert primeira + segunda == todos
+        assert client.get(caminho, headers=headers, params={"inicio": 99}).json() == []
+        for parametros in ({"limite": 0}, {"limite": 101}, {"inicio": -1}):
+            assert client.get(caminho, headers=headers, params=parametros).status_code == 422
+
+
+def test_busca_de_cursos_e_caracteres_literais(client, db):
+    for id, titulo in enumerate(["Matemática básica", "Prática 100%", "Curso_A", "CursoXA"], 1):
+        db.add(
+            CursoExterno(
+                id=id,
+                titulo=titulo,
+                carga_horaria_horas=10,
+                prazo_realizacao_dias=30,
+                url_oficial=f"https://example.com/{id}",
+                tipo_oferta="Curso Aberto",
+            )
+        )
+    db.commit()
+    for busca, esperados in (("MATEM", [1]), ("%", [2]), ("_", [3]), ("ausente", [])):
+        assert [
+            curso["id"] for curso in client.get("/cursos", params={"busca": busca}).json()
+        ] == esperados
+
+
+def test_filtros_individuais_e_prazo_de_hoje(client, db):
+    gestor = admin(db)
+    dados = [
+        vaga(inscricoes_ate=date.today().isoformat()),
+        vaga(cidade="Campinas", area_trabalho="Comércio", escolaridade_minima="sem_exigencia"),
+        vaga(cidade="Rio de Janeiro", uf="RJ", escolaridade_minima="medio_completo"),
+    ]
+    ids = [client.post("/vagas", headers=gestor, json=item).json()["id"] for item in dados]
+    for filtros, indices in (
+        ({"cidade": "Campinas"}, [1]),
+        ({"uf": "RJ"}, [2]),
+        ({"area_trabalho": "Serviços"}, [0, 2]),
+        ({"escolaridade": "medio_completo"}, [2]),
+        ({"escolaridade_desconhecida": True}, [0]),
+        (
+            {
+                "cidade": "Campinas",
+                "uf": "SP",
+                "area_trabalho": "Comércio",
+                "escolaridade": "sem_exigencia",
+            },
+            [1],
+        ),
+        ({"cidade": "Ausente"}, []),
+    ):
+        assert [v["id"] for v in client.get("/vagas", params=filtros).json()] == [
+            ids[i] for i in indices
+        ]
+    assert (
+        client.put(f"/vagas/{ids[0]}", headers=gestor, json=vaga(url_candidatura=None)).status_code
+        == 422
+    )
+    assert (
+        client.get("/admin/vagas", headers=gestor).json()[0]["inscricoes_ate"]
+        == date.today().isoformat()
+    )
+
+
+def test_municipios_valida_corpo_e_uf_enviada(client, monkeypatch):
+    urls = []
+
+    def get(url, **kwargs):
+        urls.append(url)
+        assert kwargs["timeout"] == 5
+        return httpx.Response(
+            200,
+            request=httpx.Request("GET", url),
+            json=[
+                {"id": 3550308, "nome": "São Paulo", "microrregiao": {}},
+                {"id": 3509502, "nome": "Campinas"},
+            ],
+        )
+
+    monkeypatch.setattr("backend.main.httpx.get", get)
+    assert client.get("/localidades/ufs/SP/municipios").json() == [
+        {"id": 3550308, "nome": "São Paulo"},
+        {"id": 3509502, "nome": "Campinas"},
+    ]
+    assert urls == [
+        "https://servicodados.ibge.gov.br/api/v1/localidades/estados/SP/municipios?orderBy=nome"
+    ]
+    assert client.get("/localidades/ufs/XX/municipios").status_code == 422
+    assert len(urls) == 1
+
+
+@pytest.mark.parametrize("caminho", ["/localidades/ufs", "/localidades/ufs/SP/municipios"])
+@pytest.mark.parametrize(
+    "status,conteudo",
+    [
+        (503, "indisponível"),
+        (200, "{"),
+        (200, '[{"nome":"São Paulo"}]'),
+        (200, '[{"id":0,"nome":"São Paulo","sigla":"SP"}]'),
+        (200, '[{"id":35,"nome":null,"sigla":"SP"}]'),
+    ],
+)
+def test_respostas_invalidas_do_ibge(client, monkeypatch, caminho, status, conteudo):
+    monkeypatch.setattr(
+        "backend.main.httpx.get",
+        lambda url, **kwargs: httpx.Response(
+            status,
+            request=httpx.Request("GET", url),
+            text=conteudo,
+        ),
+    )
+    resposta = client.get(caminho)
+    assert resposta.status_code == 502
+    assert resposta.json() == {"detail": "O serviço de localidades está indisponível."}
+
+
+def test_cli_inicializacao_importacao_e_administrador(db, monkeypatch, capsys):
+    monkeypatch.setattr(cli, "engine", lambda: db.bind)
+    for comando in ("init-db", "importar"):
+        monkeypatch.setattr(sys, "argv", ["backend.cli", comando])
+        cli.main()
+    assert json.loads(capsys.readouterr().out) == {"cursos": 1029, "vagas": 138}
+    senhas = iter([SENHA, SENHA])
+    monkeypatch.setattr(cli, "getpass", lambda prompt: next(senhas))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["backend.cli", "criar-admin", "--nome", "Admin", "--email", "admin@example.com"],
+    )
+    cli.main()
+    usuario = db.scalar(select(Usuario).where(Usuario.email == "admin@example.com"))
+    assert isinstance(usuario, Administrador)
+    assert usuario.senha_hash.startswith("$argon2")
+    db.commit()
+    monkeypatch.setattr(sys, "argv", ["backend.cli", "init-db"])
+    cli.main()
+    assert db.get(Usuario, usuario.id) is not None
+    assert db.scalar(select(func.count()).select_from(CursoExterno)) == 1029
+
+
+def test_cli_senhas_diferentes_nao_criam_admin(db, monkeypatch, capsys):
+    monkeypatch.setattr(cli, "engine", lambda: db.bind)
+    senhas = iter([SENHA, "outra-senha"])
+    monkeypatch.setattr(cli, "getpass", lambda prompt: next(senhas))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["backend.cli", "criar-admin", "--nome", "Admin", "--email", "admin@example.com"],
+    )
+    with pytest.raises(SystemExit) as erro:
+        cli.main()
+    assert erro.value.code == 2
+    assert "As senhas não conferem" in capsys.readouterr().err
+    assert db.scalar(select(func.count()).select_from(Usuario)) == 0
+
+
+def test_importacao_invalida_desfaz_transacao(db, tmp_path):
+    (tmp_path / "catalogo_evg.csv").write_text(
+        "id_curso|nome_curso|carga_horaria|disponibilidade_dias|tipo_oferta\n"
+        "1|Válido|10|30|Curso Aberto\n0|Inválido|10|30|Curso Aberto\n",
+        encoding="utf-8",
+    )
+    with (
+        pytest.raises(ValueError, match="Curso inválido"),
+        Session(db.bind) as transacao,
+        transacao.begin(),
+    ):
+        importar(transacao, tmp_path)
+    assert db.scalar(select(func.count()).select_from(CursoExterno)) == 0
+
+
+def test_sessoes_reais_isolam_erros_e_persistem_contas(monkeypatch, tmp_path):
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'requisicoes.db'}")
+    database.engine.cache_clear()
+    banco = database.engine()
+    assert database.engine() is banco
+    database.metadata.create_all(banco)
+    try:
+        with TestClient(app, raise_server_exceptions=False) as api:
+            usuario, headers = conta(api, "ana")
+            assert (
+                api.post(
+                    "/auth/cadastro",
+                    json={
+                        "nome_exibicao": "Outra",
+                        "email": "ana@example.com",
+                        "senha": SENHA,
+                        "tipo": "estudante",
+                    },
+                ).status_code
+                == 409
+            )
+            conta(api, "bia")
+            assert api.get("/usuarios/me", headers=headers).json() == usuario
+        with Session(banco) as conexao:
+            assert conexao.scalar(select(func.count()).select_from(Usuario)) == 2
+    finally:
+        banco.dispose()
+        database.engine.cache_clear()

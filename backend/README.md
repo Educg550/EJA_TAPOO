@@ -23,8 +23,10 @@ O Compose lê `.env` automaticamente; o arquivo não é versionado. O último co
 O [contrato OpenAPI](../docs/openapi.json) contém métodos, caminhos, parâmetros, corpos e respostas. A versão em execução está em `/openapi.json`.
 
 - Cadastre em `POST /auth/cadastro` e faça login em `POST /auth/login`, enviando JSON. Use `Authorization: Bearer <access_token>` nas chamadas autenticadas; o token dura 24 horas. `DELETE /auth/sessao` encerra a sessão.
+- `GET /usuarios/me` retorna a própria conta e, para licenciandos, disciplinas e disponibilidade para preencher a edição do perfil.
 - Catálogos públicos: `GET /cursos` e `GET /vagas`. Localidades: `GET /localidades/ufs` e `GET /localidades/ufs/{uf}/municipios`.
 - Estudante: `GET /licenciandos`, `POST /solicitacoes` com `{"licenciando_id": 1}` e `GET /solicitacoes`.
+- As respostas de solicitações incluem `estudante_nome` e `licenciando_nome`, sem os e-mails dos participantes.
 - Responda em `POST /solicitacoes/{id}/{acao}`, com `acao` igual a `aceitar`, `recusar` ou `cancelar`, conforme o papel. Contatos: `GET /solicitacoes/{id}/contatos`, após o aceite.
 - Licenciando atualiza o perfil em `PUT /licenciandos/me`. Administrador mantém vagas em `POST /vagas`, `PUT /vagas/{id}` e `DELETE /vagas/{id}`; consulta todas em `GET /admin/vagas`.
 
