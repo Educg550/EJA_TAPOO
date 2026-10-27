@@ -1,15 +1,15 @@
 @startuml
-!pragma layout smetana
+!pragma layout elk
 title Plataforma EJA — casos de uso principais
-left to right direction
 skinparam shadowing false
+skinparam linetype ortho
 
 actor Visitante
 actor "Estudante da EJA" as Estudante
 actor Licenciando
 actor Administrador
 
-rectangle "Plataforma EJA" {
+rectangle " " as Plataforma {
   usecase "Consultar cursos externos" as Cursos
   usecase "Consultar e filtrar vagas" as Vagas
   usecase "Cadastrar-se e entrar" as Cadastro
@@ -18,7 +18,7 @@ rectangle "Plataforma EJA" {
   usecase "Cancelar solicitação pendente" as Cancelar
   usecase "Consultar suas solicitações" as Solicitações
   usecase "Consultar contatos após aceite" as Contatos
-  usecase "Atualizar disciplinas\ne disponibilidade" as Perfil
+  usecase "Consultar e atualizar disciplinas\ne disponibilidade" as Perfil
   usecase "Aceitar ou recusar solicitação" as Responder
   usecase "Cadastrar, atualizar\ne encerrar vagas" as GerirVagas
 }
@@ -36,5 +36,16 @@ Licenciando -- Responder
 Licenciando -- Solicitações
 Licenciando -- Contatos
 Administrador -- GerirVagas
+
+Vagas -[hidden]-> Cadastro
+Cadastro -[hidden]-> Cursos
+Cursos -[hidden]-> Solicitar
+Solicitar -[hidden]-> Cancelar
+Cancelar -[hidden]-> Perfis
+Perfis -[hidden]-> Solicitações
+Solicitações -[hidden]-> Contatos
+Contatos -[hidden]-> Perfil
+Perfil -[hidden]-> Responder
+Responder -[hidden]-> GerirVagas
 
 @enduml

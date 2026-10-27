@@ -82,7 +82,6 @@ enum Escolaridade {
 }
 
 SolicitacaoApoio ..> EstadoSolicitacao
-OportunidadeTrabalho ..> Escolaridade : valores validados na API
 
 Usuario <|-- EstudanteEJA
 Usuario <|-- Licenciando
