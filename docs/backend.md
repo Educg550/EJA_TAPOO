@@ -2,16 +2,21 @@
 
 ## Executar com Docker
 
-Requer Docker Compose. Na raiz do repositório, defina uma senha local sem caracteres reservados de URL e inicie os serviços:
+Requer Docker Compose. Na raiz do repositório, copie o exemplo:
 
 ```sh
-export POSTGRES_PASSWORD="$(openssl rand -hex 24)"
+cp .env.example .env
+```
+
+Edite `POSTGRES_PASSWORD` em `.env`, usando uma senha sem caracteres reservados de URL, e inicie os serviços:
+
+```sh
 docker compose up --build -d
 docker compose exec api uv run --no-sync python -m backend.cli importar
 docker compose exec api uv run --no-sync python -m backend.cli criar-admin --nome Administrador --email admin@example.com
 ```
 
-Guarde a senha definida para os próximos comandos e reinícios, ou configure-a em um `.env` local, que não é versionado. A criação do administrador pede a senha duas vezes no terminal; não há administrador ou senha padrão. Senhas de contas têm entre 12 e 128 caracteres. O cadastro público só aceita estudante ou licenciando.
+O Compose lê `.env` automaticamente. Preserve esse arquivo para os próximos reinícios; ele não é versionado. A criação do administrador pede a senha duas vezes no terminal; não há administrador ou senha padrão. Senhas de contas têm entre 12 e 128 caracteres. O cadastro público só aceita estudante ou licenciando.
 
 A API está em `http://localhost:8000`, o Swagger em `http://localhost:8000/docs` e o contrato em `/openapi.json`. O banco tem volume persistente e não expõe porta ao host. `docker compose down` preserva os dados; a opção `--volumes` os apaga.
 

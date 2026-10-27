@@ -4,14 +4,19 @@ Python 3.15.2, FastAPI e PostgreSQL. Execute os comandos na raiz do repositório
 
 ## Rodar
 
+Copie `.env.example` para `.env` e ajuste `POSTGRES_PASSWORD` antes de iniciar:
+
 ```sh
-export POSTGRES_PASSWORD="$(openssl rand -hex 24)"
+cp .env.example .env
+```
+
+```sh
 docker compose up --build -d
 docker compose exec api uv run --no-sync python -m backend.cli importar
 docker compose exec api uv run --no-sync python -m backend.cli criar-admin --nome Administrador --email admin@example.com
 ```
 
-Guarde `POSTGRES_PASSWORD` para os próximos reinícios. O último comando pede a senha do administrador. API: `http://localhost:8000`; Swagger: `http://localhost:8000/docs`.
+O Compose lê `.env` automaticamente; o arquivo não é versionado. O último comando pede a senha do administrador. API: `http://localhost:8000`; Swagger: `http://localhost:8000/docs`.
 
 ## Integrar o frontend
 
