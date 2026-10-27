@@ -5,17 +5,26 @@ skinparam classAttributeIconSize 0
 skinparam shadowing false
 hide empty members
 
-class Usuario {
+abstract class Usuario {
   -id: int
   -nomeExibicao: str
   -email: str
   -senhaHash: str
-  -tipo: TipoUsuario
+  +{abstract} permissoes()
 }
 
-class PerfilLicenciando {
+class EstudanteEJA {
+  +permissoes()
+}
+
+class Licenciando {
   -disciplinas: set[str]
   -disponibilidade: str
+  +permissoes()
+}
+
+class Administrador {
+  +permissoes()
 }
 
 class SolicitacaoApoio {
@@ -29,7 +38,7 @@ class SolicitacaoApoio {
 
 together {
   class CursoExterno {
-    -idEVG: int
+    -id: int
     -titulo: str
     -cargaHorariaHoras: int
     -prazoRealizacaoDias: int
@@ -51,8 +60,10 @@ together {
   }
 }
 
-Usuario "1" *-- "0..1" PerfilLicenciando : possui
-SolicitacaoApoio "0..*" --> "1" Usuario : solicitante (estudante)
-SolicitacaoApoio "0..*" --> "1" PerfilLicenciando : destinatário
+Usuario <|-- EstudanteEJA
+Usuario <|-- Licenciando
+Usuario <|-- Administrador
+EstudanteEJA "1" <-- "0..*" SolicitacaoApoio : solicitante
+Licenciando "1" <-- "0..*" SolicitacaoApoio : destinatário
 
 @enduml
