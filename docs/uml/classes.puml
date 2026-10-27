@@ -6,10 +6,10 @@ skinparam shadowing false
 hide empty members
 
 abstract class Usuario {
-  -id: int
-  -nomeExibicao: str
-  -email: str
-  -senhaHash: str
+  +id: int
+  +nome_exibicao: str
+  +email: str
+  +senha_hash: str
   +{abstract} permissoes()
 }
 
@@ -18,8 +18,8 @@ class EstudanteEJA {
 }
 
 class Licenciando {
-  -disciplinas: set[str]
-  -disponibilidade: str
+  +disciplinas: list[str]
+  +disponibilidade: str
   +permissoes()
 }
 
@@ -28,37 +28,61 @@ class Administrador {
 }
 
 class SolicitacaoApoio {
-  -id: int
-  -estado: EstadoSolicitacao
-  -criadaEm: datetime
-  +aceitar(atorId)
-  +recusar(atorId)
-  +cancelar(atorId)
+  +id: int
+  -_estado: str
+  +estado: EstadoSolicitacao {readOnly}
+  +criada_em: datetime
+  +aceitar(ator_id)
+  +recusar(ator_id)
+  +cancelar(ator_id)
+  +autorizar_contatos(ator_id)
 }
 
 together {
   class CursoExterno {
-    -id: int
-    -titulo: str
-    -cargaHorariaHoras: int
-    -prazoRealizacaoDias: int
-    -urlOficial: str
+    +id: int
+    +titulo: str
+    +carga_horaria_horas: int
+    +prazo_realizacao_dias: int
+    +url_oficial: str
+    +tipo_oferta: str
   }
 
   class OportunidadeTrabalho {
-    -id: int
-    -titulo: str
-    -empresa: str
-    -cidade: str
-    -uf: str
-    -areaTrabalho: str
-    -escolaridadeMinima: Escolaridade [0..1]
-    -urlCandidatura: str [0..1]
-    -contatoCandidatura: str [0..1]
-    -inscricoesAte: date [0..1]
-    -ativa: bool
+    +id: int
+    +titulo: str
+    +empresa: str
+    +cidade: str
+    +uf: str
+    +area_trabalho: str
+    +escolaridade_minima: str [0..1]
+    +url_candidatura: str [0..1]
+    +contato_candidatura: str [0..1]
+    +inscricoes_ate: date [0..1]
+    +ativa: bool
+    +encerrar()
   }
 }
+
+enum EstadoSolicitacao {
+  PENDENTE
+  ACEITA
+  RECUSADA
+  CANCELADA
+}
+
+enum Escolaridade {
+  SEM_EXIGENCIA
+  FUNDAMENTAL_INCOMPLETO
+  FUNDAMENTAL_COMPLETO
+  MEDIO_INCOMPLETO
+  MEDIO_COMPLETO
+  SUPERIOR_INCOMPLETO
+  SUPERIOR_COMPLETO
+}
+
+SolicitacaoApoio ..> EstadoSolicitacao
+OportunidadeTrabalho ..> Escolaridade : valores validados na API
 
 Usuario <|-- EstudanteEJA
 Usuario <|-- Licenciando

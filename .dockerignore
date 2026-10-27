@@ -1,0 +1,11 @@
+.git
+.agents
+.codex
+.aws
+frontend
+docs
+backend/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+.env

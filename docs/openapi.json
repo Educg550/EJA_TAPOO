@@ -1,0 +1,1548 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Plataforma EJA",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Read Root",
+        "operationId": "read_root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/cadastro": {
+      "post": {
+        "summary": "Cadastrar",
+        "operationId": "cadastrar_auth_cadastro_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cadastro"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login",
+        "operationId": "login_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/sessao": {
+      "delete": {
+        "summary": "Sair",
+        "operationId": "sair_auth_sessao_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/usuarios/me": {
+      "get": {
+        "summary": "Meu Usuario",
+        "operationId": "meu_usuario_usuarios_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioSaida"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/licenciandos": {
+      "get": {
+        "summary": "Listar Licenciandos",
+        "operationId": "listar_licenciandos_licenciandos_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Inicio"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LicenciandoSaida"
+                  },
+                  "title": "Response Listar Licenciandos Licenciandos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/licenciandos/me": {
+      "put": {
+        "summary": "Atualizar Perfil",
+        "operationId": "atualizar_perfil_licenciandos_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PerfilLicenciando"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LicenciandoSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/solicitacoes": {
+      "post": {
+        "summary": "Solicitar",
+        "operationId": "solicitar_solicitacoes_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoApoio"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitacaoSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar Solicitacoes",
+        "operationId": "listar_solicitacoes_solicitacoes_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Inicio"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SolicitacaoSaida"
+                  },
+                  "title": "Response Listar Solicitacoes Solicitacoes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/solicitacoes/{id}/{acao}": {
+      "post": {
+        "summary": "Responder",
+        "operationId": "responder_solicitacoes__id___acao__post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          },
+          {
+            "name": "acao",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "enum": [
+                "aceitar",
+                "recusar",
+                "cancelar"
+              ],
+              "type": "string",
+              "title": "Acao"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitacaoSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/solicitacoes/{id}/contatos": {
+      "get": {
+        "summary": "Contatos",
+        "operationId": "contatos_solicitacoes__id__contatos_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContatosSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cursos": {
+      "get": {
+        "summary": "Listar Cursos",
+        "operationId": "listar_cursos_cursos_get",
+        "parameters": [
+          {
+            "name": "busca",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Busca"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Inicio"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CursoSaida"
+                  },
+                  "title": "Response Listar Cursos Cursos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vagas": {
+      "get": {
+        "summary": "Listar Vagas",
+        "operationId": "listar_vagas_vagas_get",
+        "parameters": [
+          {
+            "name": "cidade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cidade"
+            }
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Uf"
+            }
+          },
+          {
+            "name": "area_trabalho",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Area Trabalho"
+            }
+          },
+          {
+            "name": "escolaridade",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Escolaridade"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Escolaridade"
+            }
+          },
+          {
+            "name": "escolaridade_desconhecida",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Escolaridade Desconhecida"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Inicio"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VagaSaida"
+                  },
+                  "title": "Response Listar Vagas Vagas Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Criar Vaga",
+        "operationId": "criar_vaga_vagas_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VagaEntrada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VagaSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vagas/{id}": {
+      "put": {
+        "summary": "Atualizar Vaga",
+        "operationId": "atualizar_vaga_vagas__id__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VagaEntrada"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VagaSaida"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Encerrar Vaga",
+        "operationId": "encerrar_vaga_vagas__id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/vagas": {
+      "get": {
+        "summary": "Listar Vagas Admin",
+        "operationId": "listar_vagas_admin_admin_vagas_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "inicio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Inicio"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VagaSaida"
+                  },
+                  "title": "Response Listar Vagas Admin Admin Vagas Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/localidades/ufs": {
+      "get": {
+        "summary": "Listar Ufs",
+        "operationId": "listar_ufs_localidades_ufs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UFSaida"
+                  },
+                  "type": "array",
+                  "title": "Response Listar Ufs Localidades Ufs Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/localidades/ufs/{uf}/municipios": {
+      "get": {
+        "summary": "Listar Municipios",
+        "operationId": "listar_municipios_localidades_ufs__uf__municipios_get",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)$",
+              "title": "Uf"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LocalidadeSaida"
+                  },
+                  "title": "Response Listar Municipios Localidades Ufs  Uf  Municipios Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Cadastro": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          },
+          "senha": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Senha"
+          },
+          "nome_exibicao": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Nome Exibicao"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "estudante",
+              "licenciando"
+            ],
+            "title": "Tipo"
+          },
+          "disciplinas": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "minLength": 1
+                },
+                "type": "array",
+                "maxItems": 30,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disciplinas"
+          },
+          "disponibilidade": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disponibilidade"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "senha",
+          "nome_exibicao",
+          "tipo"
+        ],
+        "title": "Cadastro"
+      },
+      "ContatosSaida": {
+        "properties": {
+          "estudante_email": {
+            "type": "string",
+            "title": "Estudante Email"
+          },
+          "licenciando_email": {
+            "type": "string",
+            "title": "Licenciando Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estudante_email",
+          "licenciando_email"
+        ],
+        "title": "ContatosSaida"
+      },
+      "CursoSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "titulo": {
+            "type": "string",
+            "title": "Titulo"
+          },
+          "carga_horaria_horas": {
+            "type": "integer",
+            "title": "Carga Horaria Horas"
+          },
+          "prazo_realizacao_dias": {
+            "type": "integer",
+            "title": "Prazo Realizacao Dias"
+          },
+          "url_oficial": {
+            "type": "string",
+            "title": "Url Oficial"
+          },
+          "tipo_oferta": {
+            "type": "string",
+            "title": "Tipo Oferta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "titulo",
+          "carga_horaria_horas",
+          "prazo_realizacao_dias",
+          "url_oficial",
+          "tipo_oferta"
+        ],
+        "title": "CursoSaida"
+      },
+      "Escolaridade": {
+        "type": "string",
+        "enum": [
+          "sem_exigencia",
+          "fundamental_incompleto",
+          "fundamental_completo",
+          "medio_incompleto",
+          "medio_completo",
+          "superior_incompleto",
+          "superior_completo"
+        ],
+        "title": "Escolaridade"
+      },
+      "EstadoSolicitacao": {
+        "type": "string",
+        "enum": [
+          "pendente",
+          "aceita",
+          "recusada",
+          "cancelada"
+        ],
+        "title": "EstadoSolicitacao"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LicenciandoSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nome_exibicao": {
+            "type": "string",
+            "title": "Nome Exibicao"
+          },
+          "disciplinas": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Disciplinas"
+          },
+          "disponibilidade": {
+            "type": "string",
+            "title": "Disponibilidade"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome_exibicao",
+          "disciplinas",
+          "disponibilidade"
+        ],
+        "title": "LicenciandoSaida"
+      },
+      "LocalidadeSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Nome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome"
+        ],
+        "title": "LocalidadeSaida"
+      },
+      "Login": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          },
+          "senha": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "Senha"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "senha"
+        ],
+        "title": "Login"
+      },
+      "PedidoApoio": {
+        "properties": {
+          "licenciando_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Licenciando Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "licenciando_id"
+        ],
+        "title": "PedidoApoio"
+      },
+      "PerfilLicenciando": {
+        "properties": {
+          "disciplinas": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Disciplinas"
+          },
+          "disponibilidade": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Disponibilidade"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "disciplinas",
+          "disponibilidade"
+        ],
+        "title": "PerfilLicenciando"
+      },
+      "SolicitacaoSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "estudante_id": {
+            "type": "integer",
+            "title": "Estudante Id"
+          },
+          "licenciando_id": {
+            "type": "integer",
+            "title": "Licenciando Id"
+          },
+          "estado": {
+            "$ref": "#/components/schemas/EstadoSolicitacao"
+          },
+          "criada_em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Criada Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "estudante_id",
+          "licenciando_id",
+          "estado",
+          "criada_em"
+        ],
+        "title": "SolicitacaoSaida"
+      },
+      "TokenSaida": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In",
+            "default": 86400
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token"
+        ],
+        "title": "TokenSaida"
+      },
+      "UFSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Id"
+          },
+          "nome": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Nome"
+          },
+          "sigla": {
+            "type": "string",
+            "pattern": "^(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)$",
+            "title": "Sigla"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "sigla"
+        ],
+        "title": "UFSaida"
+      },
+      "UsuarioSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nome_exibicao": {
+            "type": "string",
+            "title": "Nome Exibicao"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "tipo": {
+            "type": "string",
+            "title": "Tipo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nome_exibicao",
+          "email",
+          "tipo"
+        ],
+        "title": "UsuarioSaida"
+      },
+      "VagaEntrada": {
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Titulo"
+          },
+          "empresa": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Empresa"
+          },
+          "cidade": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Cidade"
+          },
+          "uf": {
+            "type": "string",
+            "pattern": "^(AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO)$",
+            "title": "Uf"
+          },
+          "area_trabalho": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Area Trabalho"
+          },
+          "escolaridade_minima": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Escolaridade"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "url_candidatura": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2083,
+                "minLength": 1,
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Candidatura"
+          },
+          "contato_candidatura": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contato Candidatura"
+          },
+          "inscricoes_ate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inscricoes Ate"
+          },
+          "ativa": {
+            "type": "boolean",
+            "title": "Ativa",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "titulo",
+          "empresa",
+          "cidade",
+          "uf",
+          "area_trabalho"
+        ],
+        "title": "VagaEntrada"
+      },
+      "VagaSaida": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "titulo": {
+            "type": "string",
+            "title": "Titulo"
+          },
+          "empresa": {
+            "type": "string",
+            "title": "Empresa"
+          },
+          "cidade": {
+            "type": "string",
+            "title": "Cidade"
+          },
+          "uf": {
+            "type": "string",
+            "title": "Uf"
+          },
+          "area_trabalho": {
+            "type": "string",
+            "title": "Area Trabalho"
+          },
+          "escolaridade_minima": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Escolaridade"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "url_candidatura": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url Candidatura"
+          },
+          "contato_candidatura": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contato Candidatura"
+          },
+          "inscricoes_ate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inscricoes Ate"
+          },
+          "ativa": {
+            "type": "boolean",
+            "title": "Ativa"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "titulo",
+          "empresa",
+          "cidade",
+          "uf",
+          "area_trabalho",
+          "escolaridade_minima",
+          "url_candidatura",
+          "contato_candidatura",
+          "inscricoes_ate",
+          "ativa"
+        ],
+        "title": "VagaSaida"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
