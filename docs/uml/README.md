@@ -4,7 +4,7 @@ Classes de domínio implementadas em `backend/domain.py` e casos de uso principa
 
 - [Classes — visualização](classes.svg) · [fonte PlantUML](classes.puml).
 - [Casos de uso — visualização](casos-de-uso.svg) · [fonte PlantUML](casos-de-uso.puml).
-- [State e Template Method — fonte PlantUML](padroes.puml): delegação dos estados de apoio e fluxo dos importadores.
+- [State e Template Method — visualização](padroes.svg) · [fonte PlantUML](padroes.puml): delegação dos estados de apoio e fluxo dos importadores.
 
 `Usuario` é uma classe abstrata que reúne os dados comuns de identidade. `EstudanteEJA`, `Licenciando` e `Administrador` herdam dela e implementam `permissoes()`, definindo os comportamentos permitidos a cada tipo de usuário por polimorfismo. Disciplinas e disponibilidade pertencem ao licenciando. Cada solicitação relaciona um estudante a um licenciando; cursos e vagas são os dois catálogos consultados publicamente.
 
@@ -13,7 +13,7 @@ No diagrama de classes, o triângulo vazio aponta para a superclasse; as setas s
 Para gerar os SVGs com PlantUML instalado:
 
 ```sh
-plantuml -charset UTF-8 -tsvg docs/uml/classes.puml docs/uml/casos-de-uso.puml
+plantuml -charset UTF-8 -tsvg docs/uml/classes.puml docs/uml/casos-de-uso.puml docs/uml/padroes.puml
 ```
 
-As classes usam o motor ELK para linhas ortogonais. Os casos de uso usam Smetana, com atores à esquerda e casos de uso à direita. Ambos dispensam Graphviz; use PlantUML 1.2024.6 ou mais recente.
+Os diagramas de classes e padrões usam o motor ELK para linhas ortogonais. Os casos de uso usam Smetana, com atores à esquerda e casos de uso à direita. Ambos dispensam Graphviz; use PlantUML 1.2024.6 ou mais recente.

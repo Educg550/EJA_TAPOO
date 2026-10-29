@@ -1,4 +1,5 @@
 @startuml
+!pragma layout elk
 title State e Template Method no backend EJA
 skinparam classAttributeIconSize 0
 hide empty members
