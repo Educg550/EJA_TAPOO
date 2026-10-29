@@ -1,0 +1,46 @@
+@startuml
+title State e Template Method no backend EJA
+skinparam classAttributeIconSize 0
+hide empty members
+
+class SolicitacaoApoio {
+  -_estado: str
+  +aceitar(ator_id)
+  +recusar(ator_id)
+  +cancelar(ator_id)
+  +autorizar_contatos(ator_id)
+}
+class EstadoApoio {
+  +transicionar(solicitacao, destino)
+  +autorizar_contatos()
+}
+EstadoApoio <|-- Pendente
+EstadoApoio <|-- Aceita
+EstadoApoio <|-- Recusada
+EstadoApoio <|-- Cancelada
+SolicitacaoApoio ..> EstadoApoio : delega conforme _estado
+note right of EstadoApoio
+  Por padrão, rejeita transições e contatos.
+  Pendente permite transições.
+  Aceita permite contatos.
+end note
+
+abstract class Importador {
+  +importar(db, pasta): int
+  +{abstract} registros(arquivo)
+  +{abstract} converter(linha)
+}
+class ImportadorCursos
+class ImportadorVagas
+Importador <|-- ImportadorCursos
+Importador <|-- ImportadorVagas
+class "cli.importar(db, pasta)" as CLI
+CLI ..> ImportadorCursos
+CLI ..> ImportadorVagas
+note right of Importador
+  importar() é o Template Method (@final).
+  Consulta chaves, abre arquivo, converte,
+  ignora duplicatas e adiciona entidades.
+  A transação pertence ao chamador.
+end note
+@enduml

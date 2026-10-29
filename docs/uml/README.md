@@ -4,6 +4,7 @@ Classes de domínio implementadas em `backend/domain.py` e casos de uso principa
 
 - [Classes — visualização](classes.svg) · [fonte PlantUML](classes.puml).
 - [Casos de uso — visualização](casos-de-uso.svg) · [fonte PlantUML](casos-de-uso.puml).
+- [State e Template Method — fonte PlantUML](padroes.puml): delegação dos estados de apoio e fluxo dos importadores.
 
 `Usuario` é uma classe abstrata que reúne os dados comuns de identidade. `EstudanteEJA`, `Licenciando` e `Administrador` herdam dela e implementam `permissoes()`, definindo os comportamentos permitidos a cada tipo de usuário por polimorfismo. Disciplinas e disponibilidade pertencem ao licenciando. Cada solicitação relaciona um estudante a um licenciando; cursos e vagas são os dois catálogos consultados publicamente.
 

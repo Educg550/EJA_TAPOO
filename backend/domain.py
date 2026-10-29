@@ -11,6 +11,40 @@ class EstadoSolicitacao(StrEnum):
     CANCELADA = "cancelada"
 
 
+class EstadoApoio:
+    def transicionar(self, solicitacao, destino: EstadoSolicitacao):
+        raise ValueError("Somente solicitações pendentes podem ser alteradas.")
+
+    def autorizar_contatos(self):
+        raise ValueError("Os contatos são liberados somente após o aceite.")
+
+
+class Pendente(EstadoApoio):
+    def transicionar(self, solicitacao, destino: EstadoSolicitacao):
+        solicitacao._estado = destino
+
+
+class Aceita(EstadoApoio):
+    def autorizar_contatos(self):
+        return None
+
+
+class Recusada(EstadoApoio):
+    pass
+
+
+class Cancelada(EstadoApoio):
+    pass
+
+
+ESTADOS_APOIO = {
+    EstadoSolicitacao.PENDENTE: Pendente(),
+    EstadoSolicitacao.ACEITA: Aceita(),
+    EstadoSolicitacao.RECUSADA: Recusada(),
+    EstadoSolicitacao.CANCELADA: Cancelada(),
+}
+
+
 class Escolaridade(StrEnum):
     SEM_EXIGENCIA = "sem_exigencia"
     FUNDAMENTAL_INCOMPLETO = "fundamental_incompleto"
@@ -69,9 +103,7 @@ class SolicitacaoApoio:
     def _transicionar(self, ator_id: int, responsavel_id: int, estado: EstadoSolicitacao):
         if ator_id != responsavel_id:
             raise PermissionError("Esta operação pertence ao participante responsável.")
-        if self.estado != EstadoSolicitacao.PENDENTE:
-            raise ValueError("Somente solicitações pendentes podem ser alteradas.")
-        self._estado = estado
+        ESTADOS_APOIO[self.estado].transicionar(self, estado)
 
     def aceitar(self, ator_id: int):
         self._transicionar(ator_id, self.licenciando_id, EstadoSolicitacao.ACEITA)
@@ -85,8 +117,7 @@ class SolicitacaoApoio:
     def autorizar_contatos(self, ator_id: int):
         if ator_id not in (self.estudante_id, self.licenciando_id):
             raise PermissionError("Acesso restrito aos participantes.")
-        if self.estado != EstadoSolicitacao.ACEITA:
-            raise ValueError("Os contatos são liberados somente após o aceite.")
+        ESTADOS_APOIO[self.estado].autorizar_contatos()
 
 
 @dataclass(kw_only=True)

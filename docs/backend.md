@@ -94,7 +94,9 @@ Erros: 401 para autenticação ausente ou inválida; 403 para acesso indevido; 4
 
 Uma conexão pendente ou aceita bloqueia novos pedidos entre o mesmo estudante e licenciando por índice único parcial. Recusa e cancelamento permitem novo pedido. Um bloqueio de linha no PostgreSQL serializa as respostas concorrentes para que apenas uma transição vença. Essa política de repetição foi adotada na implementação; não existe encerramento de uma conexão aceita.
 
-Não foram acrescentados Repository, Unit of Work, Factory ou State próprios. A sessão do SQLAlchemy já cuida da persistência e das transações; quatro estados com três transições não justificam uma hierarquia de estados. Não há padrão GoF adicional imposto ao domínio.
+`SolicitacaoApoio` usa State: delega transições e liberação de contatos a `Pendente`, `Aceita`, `Recusada` e `Cancelada`. As verificações de participante continuam na solicitação. O enum `EstadoSolicitacao` mantém os valores públicos e persistidos; o objeto de comportamento é escolhido a partir desse valor a cada operação, inclusive após leitura do banco.
+
+`importacao.py` usa Template Method: `Importador.importar()` fixa consulta de chaves, abertura do arquivo, conversão, deduplicação e inclusão. `ImportadorCursos` e `ImportadorVagas` implementam leitura e conversão com as validações existentes. `cli.importar()` coordena ambos e executa o flush; a transação do chamador continua responsável pelo commit ou rollback dos dois catálogos. Não foram acrescentados Repository, Unit of Work ou Factory próprios.
 
 Conforme as [novidades do Python 3.15](https://docs.python.org/3/whatsnew/3.15.html), `lazy import` adia o HTTPX usado pelo IBGE e os módulos específicos dos comandos de importação e criação de administrador. Assim, `init-db` e `--help` não carregam validação HTTP nem hashing de senhas. O mapeamento ORM e o registro das rotas continuam imediatos, pois seus efeitos são necessários à inicialização. Não foi ativado lazy loading global. As permissões já são conjuntos imutáveis (`frozenset`); não há mapa constante que justifique `frozendict` nesta implementação.
 
