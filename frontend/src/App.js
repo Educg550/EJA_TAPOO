@@ -30,8 +30,8 @@ export default function App() {
             <Route element={<MainLayout />}>
               <Route index element={<Navigate to="/cursos" replace />} />
 
-              {rotas.map(({ caminho, papeis, titulo, descricao }) => {
-                const pagina = <PlaceholderPage titulo={titulo} descricao={descricao} />;
+              {rotas.map(({ caminho, papeis, componente: Componente, titulo, descricao }) => {
+                const pagina = Componente ? <Componente /> : <PlaceholderPage titulo={titulo} descricao={descricao} />;
                 return (
                   <Route
                     key={caminho}

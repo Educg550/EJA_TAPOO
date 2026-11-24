@@ -5,9 +5,12 @@ import PeopleIcon from '@mui/icons-material/People';
 import ForumIcon from '@mui/icons-material/Forum';
 import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import LoginPage from './pages/LoginPage';
+import CadastroPage from './pages/CadastroPage';
 
 // Fonte única das rotas: o App monta as rotas e o MainLayout monta o menu a partir desta tabela.
 // `papeis` ausente = rota pública; `menu` ausente = rota fora do menu de navegação.
+// `componente` ausente = página provisória com `titulo` e `descricao`.
 const rotas = [
     {
         caminho: '/cursos',
@@ -24,11 +27,13 @@ const rotas = [
     },
     {
         caminho: '/login',
+        componente: LoginPage,
         titulo: 'Entrar na Plataforma',
         descricao: 'Autenticação por e-mail e senha (POST /auth/login).',
     },
     {
         caminho: '/cadastro',
+        componente: CadastroPage,
         titulo: 'Criar Conta',
         descricao: 'Cadastro público de Estudante da EJA ou Licenciando (POST /auth/cadastro).',
     },
