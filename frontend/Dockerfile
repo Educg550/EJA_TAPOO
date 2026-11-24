@@ -1,7 +1,14 @@
-FROM node:24-alpine AS build
+FROM node:24-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
+
+# Servidor de desenvolvimento com recarga automática (usado por compose.dev.yaml).
+FROM deps AS dev
+EXPOSE 3000
+CMD ["npm", "start"]
+
+FROM deps AS build
 COPY public ./public
 COPY src ./src
 ARG REACT_APP_API_URL=http://localhost:8000

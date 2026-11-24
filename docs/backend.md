@@ -20,6 +20,8 @@ O Compose lê `.env` automaticamente. Preserve esse arquivo para os próximos re
 
 O frontend está em `http://localhost:3000`, a API em `http://localhost:8000`, o Swagger em `http://localhost:8000/docs` e o contrato em `/openapi.json`. O banco tem volume persistente e não expõe porta ao host. `docker compose down` preserva os dados; a opção `--volumes` os apaga.
 
+Para desenvolver com recarga automática, use `docker compose -f compose.yaml -f compose.dev.yaml up --build -d`. O backend e os fontes do frontend são montados nos contêineres: a API reinicia ao salvar um arquivo Python e o frontend roda o servidor de desenvolvimento do React, que recompila a cada alteração. Mudanças de dependências exigem `--build`.
+
 O [contrato OpenAPI versionado](openapi.json) é exportado diretamente da aplicação. O [README do backend](../backend/README.md) resume a execução e a integração do frontend, incluindo o comando de atualização do contrato. Um teste verifica que o arquivo continua igual ao schema da API.
 
 O Docker instala o Python e as dependências com `uv`, executa a aplicação sem root e espera a disponibilidade do PostgreSQL. O comando `init-db` cria as tabelas ausentes sem apagar registros. Ele não migra tabelas existentes: mudanças futuras no esquema precisam de uma migração antes de atualizar um banco com dados.
