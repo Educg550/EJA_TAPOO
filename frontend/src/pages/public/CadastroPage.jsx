@@ -1,0 +1,1 @@
+{/* Registro de estudante ou licenciando (/auth/cadastro) */ }

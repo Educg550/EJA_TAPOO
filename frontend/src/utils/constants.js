@@ -1,0 +1,1 @@
+{/* Mapeamento de enums (Escolaridade, EstadoSolicitacao) */ }
