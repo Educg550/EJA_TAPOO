@@ -16,7 +16,7 @@ docker compose exec api uv run --no-sync python -m backend.cli importar
 docker compose exec api uv run --no-sync python -m backend.cli criar-admin --nome Administrador --email admin@example.com
 ```
 
-O Compose lê `.env` automaticamente; o arquivo não é versionado. O último comando pede a senha do administrador. API: `http://localhost:8000`; Swagger: `http://localhost:8000/docs`.
+O Compose lê `.env` automaticamente; o arquivo não é versionado. O último comando pede a senha do administrador. Frontend: `http://localhost:3000`; API: `http://localhost:8000`; Swagger: `http://localhost:8000/docs`.
 
 ## Integrar o frontend
 
@@ -30,7 +30,7 @@ O [contrato OpenAPI](../docs/openapi.json) contém métodos, caminhos, parâmetr
 - Responda em `POST /solicitacoes/{id}/{acao}`, com `acao` igual a `aceitar`, `recusar` ou `cancelar`, conforme o papel. Contatos: `GET /solicitacoes/{id}/contatos`, após o aceite.
 - Licenciando atualiza o perfil em `PUT /licenciandos/me`. Administrador mantém vagas em `POST /vagas`, `PUT /vagas/{id}` e `DELETE /vagas/{id}`; consulta todas em `GET /admin/vagas`.
 
-Envie `Content-Type: application/json` quando houver corpo. Respostas 204 não têm JSON. Listagens persistidas aceitam `limite` e `inicio`; os filtros estão no contrato. CORS permite `localhost:3000` e `127.0.0.1:3000`; ajuste `CORS_ORIGINS` para outra origem. O frontend atual ainda usa a antiga demonstração `/items/` e precisa ser integrado.
+Envie `Content-Type: application/json` quando houver corpo. Respostas 204 não têm JSON. Listagens persistidas aceitam `limite` e `inicio`; os filtros estão no contrato. CORS permite `localhost:3000` e `127.0.0.1:3000`; ajuste `CORS_ORIGINS` para outra origem. O frontend já envia o token `Bearer` pelo cliente Axios em `frontend/src/services/api.js` e carrega a sessão por `/usuarios/me`; as páginas do domínio ainda precisam ser integradas.
 
 [Execução sem Docker, regras e testes](../docs/backend.md).
 

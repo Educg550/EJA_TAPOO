@@ -18,7 +18,7 @@ docker compose exec api uv run --no-sync python -m backend.cli criar-admin --nom
 
 O Compose lê `.env` automaticamente. Preserve esse arquivo para os próximos reinícios; ele não é versionado. A criação do administrador pede a senha duas vezes no terminal; não há administrador ou senha padrão. Senhas de contas têm entre 12 e 128 caracteres. O cadastro público só aceita estudante ou licenciando.
 
-A API está em `http://localhost:8000`, o Swagger em `http://localhost:8000/docs` e o contrato em `/openapi.json`. O banco tem volume persistente e não expõe porta ao host. `docker compose down` preserva os dados; a opção `--volumes` os apaga.
+O frontend está em `http://localhost:3000`, a API em `http://localhost:8000`, o Swagger em `http://localhost:8000/docs` e o contrato em `/openapi.json`. O banco tem volume persistente e não expõe porta ao host. `docker compose down` preserva os dados; a opção `--volumes` os apaga.
 
 O [contrato OpenAPI versionado](openapi.json) é exportado diretamente da aplicação. O [README do backend](../backend/README.md) resume a execução e a integração do frontend, incluindo o comando de atualização do contrato. Um teste verifica que o arquivo continua igual ao schema da API.
 
@@ -38,7 +38,7 @@ uv run --project backend python -m backend.cli criar-admin --nome Administrador 
 uv run --project backend uvicorn backend.main:app --reload
 ```
 
-`DATABASE_URL` é obrigatória. `CORS_ORIGINS` aceita origens separadas por vírgula; o padrão permite apenas `http://localhost:3000` e `http://127.0.0.1:3000`. O Compose publica a API somente em loopback. Para publicação, configure HTTPS, origens reais e limitação de tentativas de autenticação no proxy. Publicação em servidor não faz parte desta implementação.
+`DATABASE_URL` é obrigatória. `CORS_ORIGINS` aceita origens separadas por vírgula; o padrão permite apenas `http://localhost:3000` e `http://127.0.0.1:3000`. O Compose publica a API e o frontend somente em loopback. O endereço da API usado pelo frontend é fixado na construção da imagem pela variável `REACT_APP_API_URL` (padrão `http://localhost:8000`). Para publicação, configure HTTPS, origens reais e limitação de tentativas de autenticação no proxy. Publicação em servidor não faz parte desta implementação.
 
 ## Rotas
 
@@ -127,7 +127,7 @@ export TEST_DATABASE_URL='postgresql+psycopg://usuario:senha@localhost/eja_test'
 uv run --project backend pytest backend/tests -q --cov=backend --cov-branch --cov-config=backend/pyproject.toml --cov-report=term-missing
 ```
 
-Os testes apagam e recriam as tabelas desse banco isolado a cada caso. Nunca use um banco com dados úteis. Cobrem a abstração e o polimorfismo dos usuários, autenticação, expiração e revogação de sessão, autorização entre participantes, sigilo dos e-mails, estados finais, pedidos repetidos, manutenção e filtros de vagas, importação idempotente, validação das entradas e falhas do IBGE. A integração do frontend React não é coberta: ele ainda chama a antiga demonstração `/items/`, removida do backend.
+Os testes apagam e recriam as tabelas desse banco isolado a cada caso. Nunca use um banco com dados úteis. Cobrem a abstração e o polimorfismo dos usuários, autenticação, expiração e revogação de sessão, autorização entre participantes, sigilo dos e-mails, estados finais, pedidos repetidos, manutenção e filtros de vagas, importação idempotente, validação das entradas e falhas do IBGE. A integração do frontend React não é coberta: ele já autentica por `/auth/login` e `/usuarios/me`, mas as páginas do domínio ainda são provisórias.
 
 Validação em 27/10/2026, com Python 3.15.2: 66 testes passaram no PostgreSQL 17; no SQLite, 64 passaram e os dois testes de concorrência foram ignorados por dependerem de PostgreSQL. A cobertura do backend, excluídos os próprios testes, chegou a 99%, agora incluindo decisões além das linhas. API, schemas, segurança e persistência tiveram 100%. Permanecem sem execução o corpo do método abstrato `Usuario.permissoes()` e a chamada do módulo CLI pelo bloco `__main__`.
 
@@ -135,7 +135,7 @@ Os testes adicionais verificam o perfil completo do licenciando, os nomes dos pa
 
 A imagem Docker foi construída e o Compose iniciou banco e API. A importação pela CLI retornou `{"cursos": 1029, "vagas": 138}`; a segunda execução retornou `{"cursos": 0, "vagas": 0}`. Chamadas HTTP reais verificaram cadastro, login, apoio, liberação de contatos, catálogo e os endpoints de UF e municípios do IBGE. Os hashes dos arquivos de dados originais permaneceram iguais. Ruff e a verificação de formatação passaram.
 
-O Starlette instalado emite um aviso de depreciação do uso de HTTPX pelo cliente de testes. A suíte passa; a migração desse cliente fica para uma atualização das ferramentas de teste. A entrada de senha da CLI é simulada nos testes; o terminal interativo não é automatizado. Fluxos pelo navegador continuam fora desta suíte, pois o frontend ainda precisa ser implementado e integrado.
+O Starlette instalado emite um aviso de depreciação do uso de HTTPX pelo cliente de testes. A suíte passa; a migração desse cliente fica para uma atualização das ferramentas de teste. A entrada de senha da CLI é simulada nos testes; o terminal interativo não é automatizado. Fluxos pelo navegador continuam fora desta suíte, pois as páginas do frontend ainda precisam ser implementadas.
 
 ## Revisão final do backend e UML
 
