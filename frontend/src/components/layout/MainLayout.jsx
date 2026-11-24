@@ -18,16 +18,56 @@ import {
     Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import SchoolIcon from '@mui/icons-material/School';
-import WorkIcon from '@mui/icons-material/Work';
-import PeopleIcon from '@mui/icons-material/People';
-import ForumIcon from '@mui/icons-material/Forum';
-import PersonIcon from '@mui/icons-material/Person';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LoginIcon from '@mui/icons-material/Login';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuth } from '../../context/AuthContext';
+import rotas from '../../routes';
+
+// Botões de conta (Entrar / Criar Conta / Sair), compartilhados pela barra superior e pela gaveta.
+function BotoesConta({ naGaveta, autenticado, onNavegar, onSair }) {
+    if (autenticado) {
+        return (
+            <Button
+                color={naGaveta ? 'error' : 'inherit'}
+                variant="outlined"
+                startIcon={<LogoutIcon />}
+                onClick={onSair}
+                fullWidth={naGaveta}
+                sx={naGaveta ? undefined : { borderColor: 'rgba(255,255,255,0.7)' }}
+            >
+                {naGaveta ? 'Sair da Conta' : 'Sair'}
+            </Button>
+        );
+    }
+
+    return (
+        <>
+            <Button
+                component={RouterLink}
+                to="/login"
+                color={naGaveta ? 'primary' : 'inherit'}
+                variant={naGaveta ? 'outlined' : 'text'}
+                startIcon={<LoginIcon />}
+                onClick={onNavegar}
+                fullWidth={naGaveta}
+            >
+                Entrar
+            </Button>
+            <Button
+                component={RouterLink}
+                to="/cadastro"
+                variant="contained"
+                color="secondary"
+                startIcon={<PersonAddIcon />}
+                onClick={onNavegar}
+                fullWidth={naGaveta}
+            >
+                Criar Conta
+            </Button>
+        </>
+    );
+}
 
 export default function MainLayout() {
     const [drawerAberto, setDrawerAberto] = useState(false);
@@ -41,34 +81,16 @@ export default function MainLayout() {
         navigate('/login');
     };
 
-    const itensNavegacao = [
-        { texto: 'Cursos Externos', caminho: '/cursos', icone: <SchoolIcon />, visivel: true },
-        { texto: 'Vagas de Trabalho', caminho: '/vagas', icone: <WorkIcon />, visivel: true },
-        {
-            texto: 'Buscar Orientadores',
-            caminho: '/licenciandos',
-            icone: <PeopleIcon />,
-            visivel: autenticado && possuiPapel(['estudante']),
-        },
-        {
-            texto: 'Minhas Solicitações',
-            caminho: '/solicitacoes',
-            icone: <ForumIcon />,
-            visivel: autenticado && possuiPapel(['estudante', 'licenciando']),
-        },
-        {
-            texto: 'Meu Perfil de Orientador',
-            caminho: '/meu-perfil',
-            icone: <PersonIcon />,
-            visivel: autenticado && possuiPapel(['licenciando']),
-        },
-        {
-            texto: 'Gerenciar Vagas (Admin)',
-            caminho: '/admin/vagas',
-            icone: <AdminPanelSettingsIcon />,
-            visivel: autenticado && possuiPapel(['administrador', 'admin']),
-        },
-    ].filter((item) => item.visivel);
+    const fecharDrawer = () => setDrawerAberto(false);
+
+    const itensNavegacao = rotas
+        .filter((rota) => rota.menu && (!rota.papeis || possuiPapel(rota.papeis)))
+        .map((rota) => ({
+            caminho: rota.caminho,
+            texto: rota.menu.texto,
+            icone: rota.menu.icone,
+            ativo: location.pathname.startsWith(rota.caminho),
+        }));
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -122,71 +144,38 @@ export default function MainLayout() {
                             aria-label="Menu principal"
                             sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, gap: 1 }}
                         >
-                            {itensNavegacao.map((item) => {
-                                const ativo = location.pathname.startsWith(item.caminho);
-                                return (
-                                    <Button
-                                        key={item.caminho}
-                                        component={RouterLink}
-                                        to={item.caminho}
-                                        color="inherit"
-                                        startIcon={item.icone}
-                                        aria-current={ativo ? 'page' : undefined}
-                                        sx={{
-                                            bgcolor: ativo ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-                                            borderBottom: ativo ? '3px solid #FFFFFF' : '3px solid transparent',
-                                            borderRadius: 1,
-                                            '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.12)' },
-                                        }}
-                                    >
-                                        {item.texto}
-                                    </Button>
-                                );
-                            })}
+                            {itensNavegacao.map(({ caminho, texto, icone, ativo }) => (
+                                <Button
+                                    key={caminho}
+                                    component={RouterLink}
+                                    to={caminho}
+                                    color="inherit"
+                                    startIcon={icone}
+                                    aria-current={ativo ? 'page' : undefined}
+                                    sx={{
+                                        bgcolor: ativo ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                                        borderBottom: ativo ? '3px solid #FFFFFF' : '3px solid transparent',
+                                        borderRadius: 1,
+                                        '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.12)' },
+                                    }}
+                                >
+                                    {texto}
+                                </Button>
+                            ))}
                         </Box>
 
                         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1.5 }}>
-                            {autenticado ? (
-                                <>
-                                    <Chip
-                                        label={`${usuario.nome_exibicao} (${usuario.tipo})`}
-                                        sx={{
-                                            bgcolor: 'rgba(255, 255, 255, 0.18)',
-                                            color: '#FFFFFF',
-                                            fontWeight: 600,
-                                        }}
-                                    />
-                                    <Button
-                                        color="inherit"
-                                        variant="outlined"
-                                        startIcon={<LogoutIcon />}
-                                        onClick={handleLogout}
-                                        sx={{ borderColor: 'rgba(255,255,255,0.7)' }}
-                                    >
-                                        Sair
-                                    </Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Button
-                                        component={RouterLink}
-                                        to="/login"
-                                        color="inherit"
-                                        startIcon={<LoginIcon />}
-                                    >
-                                        Entrar
-                                    </Button>
-                                    <Button
-                                        component={RouterLink}
-                                        to="/cadastro"
-                                        variant="contained"
-                                        color="secondary"
-                                        startIcon={<PersonAddIcon />}
-                                    >
-                                        Criar Conta
-                                    </Button>
-                                </>
+                            {autenticado && (
+                                <Chip
+                                    label={`${usuario.nome_exibicao} (${usuario.tipo})`}
+                                    sx={{
+                                        bgcolor: 'rgba(255, 255, 255, 0.18)',
+                                        color: '#FFFFFF',
+                                        fontWeight: 600,
+                                    }}
+                                />
                             )}
+                            <BotoesConta autenticado={autenticado} onSair={handleLogout} />
                         </Box>
                     </Toolbar>
                 </Container>
@@ -195,7 +184,7 @@ export default function MainLayout() {
             <Drawer
                 anchor="left"
                 open={drawerAberto}
-                onClose={() => setDrawerAberto(false)}
+                onClose={fecharDrawer}
                 slotProps={{ paper: { sx: { width: 290 } } }}
             >
                 <Box sx={{ p: 2.5, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
@@ -208,75 +197,31 @@ export default function MainLayout() {
                 </Box>
                 <Divider />
                 <List component="nav" aria-label="Menu lateral">
-                    {itensNavegacao.map((item) => {
-                        const ativo = location.pathname.startsWith(item.caminho);
-                        return (
-                            <ListItem key={item.caminho} disablePadding>
-                                <ListItemButton
-                                    component={RouterLink}
-                                    to={item.caminho}
-                                    selected={ativo}
-                                    onClick={() => setDrawerAberto(false)}
-                                    sx={{ minHeight: 52 }}
-                                >
-                                    <ListItemIcon sx={{ color: ativo ? 'primary.main' : 'inherit' }}>
-                                        {item.icone}
-                                    </ListItemIcon>
-                                    <ListItemText
-                                        primary={item.texto}
-                                        slotProps={{ primary: { sx: { fontWeight: ativo ? 700 : 500 } } }}
-                                    />
-                                </ListItemButton>
-                            </ListItem>
-                        );
-                    })}
+                    {itensNavegacao.map(({ caminho, texto, icone, ativo }) => (
+                        <ListItem key={caminho} disablePadding>
+                            <ListItemButton
+                                component={RouterLink}
+                                to={caminho}
+                                selected={ativo}
+                                onClick={fecharDrawer}
+                                sx={{ minHeight: 52 }}
+                            >
+                                <ListItemIcon sx={{ color: ativo ? 'primary.main' : 'inherit' }}>{icone}</ListItemIcon>
+                                <ListItemText
+                                    primary={texto}
+                                    slotProps={{ primary: { sx: { fontWeight: ativo ? 700 : 500 } } }}
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    ))}
                 </List>
                 <Divider sx={{ my: 1 }} />
                 <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    {autenticado ? (
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            startIcon={<LogoutIcon />}
-                            onClick={handleLogout}
-                            fullWidth
-                        >
-                            Sair da Conta
-                        </Button>
-                    ) : (
-                        <>
-                            <Button
-                                component={RouterLink}
-                                to="/login"
-                                variant="outlined"
-                                startIcon={<LoginIcon />}
-                                onClick={() => setDrawerAberto(false)}
-                                fullWidth
-                            >
-                                Entrar
-                            </Button>
-                            <Button
-                                component={RouterLink}
-                                to="/cadastro"
-                                variant="contained"
-                                color="secondary"
-                                startIcon={<PersonAddIcon />}
-                                onClick={() => setDrawerAberto(false)}
-                                fullWidth
-                            >
-                                Criar Conta
-                            </Button>
-                        </>
-                    )}
+                    <BotoesConta naGaveta autenticado={autenticado} onNavegar={fecharDrawer} onSair={handleLogout} />
                 </Box>
             </Drawer>
 
-            <Container
-                id="conteudo-principal"
-                component="main"
-                maxWidth="lg"
-                sx={{ flexGrow: 1, py: 4 }}
-            >
+            <Container id="conteudo-principal" component="main" maxWidth="lg" sx={{ flexGrow: 1, py: 4 }}>
                 <Outlet />
             </Container>
 
@@ -292,7 +237,8 @@ export default function MainLayout() {
             >
                 <Container maxWidth="lg">
                     <Typography variant="body2" color="text.secondary" align="center">
-                        Plataforma EJA — Educação de Jovens e Adultos: Cursos, Oportunidades de Trabalho e Orientação Acadêmica.
+                        Plataforma EJA — Educação de Jovens e Adultos: Cursos, Oportunidades de Trabalho e Orientação
+                        Acadêmica.
                     </Typography>
                 </Container>
             </Box>

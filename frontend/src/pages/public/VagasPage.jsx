@@ -1,1 +1,0 @@
-{/* Catálogo público de vagas com filtros IBGE (/vagas) */ }

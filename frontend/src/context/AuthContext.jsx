@@ -68,18 +68,8 @@ export function AuthProvider({ children }) {
     };
 
     const possuiPapel = useCallback(
-        (papeisPermitidos) => {
-            if (!usuario?.tipo) return false;
-            const tipoAtual = usuario.tipo.toLowerCase();
-            return papeisPermitidos.some((papel) => {
-                const alvo = papel.toLowerCase();
-                if (alvo === 'administrador' || alvo === 'admin') {
-                    return tipoAtual === 'administrador' || tipoAtual === 'admin';
-                }
-                return tipoAtual === alvo;
-            });
-        },
-        [usuario]
+        (papeisPermitidos) => Boolean(usuario?.tipo) && papeisPermitidos.includes(usuario.tipo),
+        [usuario],
     );
 
     const valorContexto = {

@@ -1,1 +1,0 @@
-{/*Catálogo público de cursos (/cursos)*/ }

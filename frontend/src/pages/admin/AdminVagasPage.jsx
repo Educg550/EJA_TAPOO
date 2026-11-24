@@ -1,1 +1,0 @@
-{/* CRUD e encerramento de vagas (/admin/vagas e /vagas) */ }
