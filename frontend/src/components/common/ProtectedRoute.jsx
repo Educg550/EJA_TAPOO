@@ -5,7 +5,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
-    const { autenticado, carregandoSessao, possuiPapel } = useAuth();
+    const { autenticado, carregandoSessao, falhaVerificacao, carregarMeuPerfil, possuiPapel } = useAuth();
     const location = useLocation();
 
     if (carregandoSessao) {
@@ -25,6 +25,19 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
                 <CircularProgress size={48} />
                 <Typography variant="h6">Verificando sua sessão...</Typography>
             </Box>
+        );
+    }
+
+    if (!autenticado && falhaVerificacao) {
+        return (
+            <Container maxWidth="sm" sx={{ mt: 6 }}>
+                <Alert severity="warning" sx={{ mb: 3, fontSize: '1.05rem' }}>
+                    Não foi possível verificar sua sessão. Verifique sua conexão e tente novamente.
+                </Alert>
+                <Button variant="contained" onClick={carregarMeuPerfil}>
+                    Tentar novamente
+                </Button>
+            </Container>
         );
     }
 
