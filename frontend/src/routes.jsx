@@ -7,6 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LoginPage from './pages/LoginPage';
 import CadastroPage from './pages/CadastroPage';
+import CursosPage from './pages/CursosPage';
 
 // Fonte única das rotas: o App monta as rotas e o MainLayout monta o menu a partir desta tabela.
 // `papeis` ausente = rota pública; `menu` ausente = rota fora do menu de navegação.
@@ -14,6 +15,7 @@ import CadastroPage from './pages/CadastroPage';
 const rotas = [
     {
         caminho: '/cursos',
+        componente: CursosPage,
         menu: { texto: 'Cursos Externos', icone: <SchoolIcon /> },
         titulo: 'Catálogo de Cursos Externos',
         descricao: 'Consulta pública de cursos abertos com busca por título e paginação (GET /cursos).',
