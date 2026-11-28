@@ -58,7 +58,7 @@ uv run --project backend uvicorn backend.main:app --reload
 | `POST /solicitacoes/{id}/recusar` | Licenciando destinatário recusa um pedido pendente |
 | `POST /solicitacoes/{id}/cancelar` | Estudante solicitante cancela um pedido pendente |
 | `GET /solicitacoes/{id}/contatos` | E-mails dos dois participantes, somente após aceite e somente para eles |
-| `GET /cursos` | Público; busca pelo título com `busca` |
+| `GET /cursos` | Público; busca pelo título com `busca`; o cabeçalho `X-Total-Count` informa o total da busca para a paginação |
 | `GET /vagas` | Público; filtros `cidade`, `uf`, `area_trabalho`, `escolaridade`, `escolaridade_desconhecida` |
 | `POST /vagas` | Administrador cadastra vaga |
 | `PUT /vagas/{id}` | Administrador substitui os dados da vaga |

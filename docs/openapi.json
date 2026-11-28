@@ -506,6 +506,14 @@
                   "title": "Response Listar Cursos Cursos Get"
                 }
               }
+            },
+            "headers": {
+              "X-Total-Count": {
+                "description": "Total de cursos que atendem à busca, sem paginação.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
             }
           },
           "422": {
