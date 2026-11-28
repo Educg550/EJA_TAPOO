@@ -2,11 +2,11 @@ import os
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.exc import IntegrityError
 lazy import httpx
 
@@ -57,6 +57,7 @@ app.add_middleware(
     ),
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
+    expose_headers=["X-Total-Count"],
 )
 Limite = Annotated[int, Query(ge=1, le=100)]
 Inicio = Annotated[int, Query(ge=0)]
@@ -215,14 +216,31 @@ def contatos(id: int, db: DB, usuario: Atual):
     )
 
 
-@app.get("/cursos", response_model=list[CursoSaida])
-def listar_cursos(db: DB, busca: Busca = None, limite: Limite = 20, inicio: Inicio = 0):
+@app.get(
+    "/cursos",
+    response_model=list[CursoSaida],
+    responses={
+        200: {
+            "headers": {
+                "X-Total-Count": {
+                    "description": "Total de cursos que atendem à busca, sem paginação.",
+                    "schema": {"type": "integer"},
+                }
+            }
+        }
+    },
+)
+def listar_cursos(
+    db: DB, response: Response, busca: Busca = None, limite: Limite = 20, inicio: Inicio = 0
+):
     consulta = select(CursoExterno).where(
         CursoExterno.tipo_oferta == "Curso Aberto",
         CursoExterno.carga_horaria_horas > 0,
     )
     if busca:
         consulta = consulta.where(CursoExterno.titulo.icontains(busca, autoescape=True))
+    total = db.scalar(select(func.count()).select_from(consulta.subquery()))
+    response.headers["X-Total-Count"] = str(total)
     return db.scalars(consulta.order_by(CursoExterno.id).offset(inicio).limit(limite)).all()
 
 

@@ -598,6 +598,31 @@ def test_busca_de_cursos_e_caracteres_literais(client, db):
         ] == esperados
 
 
+def test_total_de_cursos_no_cabecalho(client, db):
+    for id in range(1, 6):
+        db.add(
+            CursoExterno(
+                id=id,
+                titulo=f"Excel {id}" if id <= 3 else f"Word {id}",
+                carga_horaria_horas=10 if id != 5 else 0,
+                prazo_realizacao_dias=30,
+                url_oficial=f"https://example.com/{id}",
+                tipo_oferta="Curso Aberto",
+            )
+        )
+    db.commit()
+    resposta = client.get("/cursos", params={"limite": 1})
+    assert len(resposta.json()) == 1
+    assert resposta.headers["X-Total-Count"] == "4"
+    assert (
+        client.get("/cursos", params={"busca": "excel", "inicio": 2}).headers["X-Total-Count"]
+        == "3"
+    )
+    assert client.get("/cursos", params={"busca": "ausente"}).headers["X-Total-Count"] == "0"
+    cors = client.get("/cursos", headers={"Origin": "http://localhost:3000"})
+    assert "x-total-count" in cors.headers["Access-Control-Expose-Headers"].lower()
+
+
 def test_filtros_individuais_e_prazo_de_hoje(client, db):
     gestor = admin(db)
     dados = [
